@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetAutoPro — Network Automation Toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e0a;--bg2:#0f1410;--bg3:#141a14;--border:#1a2e1a;
+  --green:#00ff41;--green2:#00cc33;--green3:#009922;--dim:#0a1a0a;
+  --text:#c8ffc8;--muted:#5a8a5a;--amber:#ffb700;--red:#ff4444;
+  --blue:#00aaff;--cyan:#00ffcc;
+}
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;line-height:1.6;min-height:100vh}
+.scanline{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px)}
+.header{padding:1.5rem 1.5rem 0.5rem;border-bottom:1px solid var(--border)}
+.header-top{display:flex;align-items:center;gap:12px;margin-bottom:0.5rem}
+.logo{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:var(--green);text-shadow:0 0 12px rgba(0,255,65,0.3);letter-spacing:3px}
+.blink{animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.status-bar{display:flex;gap:16px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.status-dot{color:var(--green)}
+.nav{display:flex;gap:4px;padding:0.75rem 1.5rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.nav-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;border-radius:3px;transition:all 0.2s;letter-spacing:1px}
+.nav-btn:hover,.nav-btn.active{border-color:var(--green);color:var(--green);background:rgba(0,255,65,0.05)}
+.content{padding:1.5rem;display:none}
+.content.active{display:block}
+.prompt{color:var(--green);font-size:11px;margin-bottom:1rem}
+.section-title{font-family:'Orbitron',monospace;font-size:12px;color:var(--green);letter-spacing:2px;margin-bottom:1rem;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:1rem}
+.card-title{font-size:11px;color:var(--green2);letter-spacing:1px;margin-bottom:8px}
+input[type=text],input[type=number]{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;padding:6px 10px;width:100%;border-radius:3px;outline:none}
+input:focus{border-color:var(--green)}
+button.run{background:rgba(0,255,65,0.1);border:1px solid var(--green3);color:var(--green);font-family:'Share Tech Mono',monospace;font-size:11px;padding:7px 18px;cursor:pointer;border-radius:3px;letter-spacing:1px;transition:all 0.2s;margin-top:8px}
+button.run:hover{background:rgba(0,255,65,0.2)}
+.output{background:var(--dim);border:1px solid var(--border);border-radius:3px;padding:12px;margin-top:10px;font-size:12px;min-height:60px;color:var(--cyan);white-space:pre-wrap;line-height:1.8}
+.row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px}
+.field{flex:1;min-width:140px}
+.field label{display:block;color:var(--muted);font-size:10px;margin-bottom:4px;letter-spacing:1px}
+.qa-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;margin-bottom:8px;overflow:hidden}
+.qa-q{padding:10px 12px;cursor:pointer;color:var(--amber);font-size:12px;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.qa-q:hover{background:rgba(255,183,0,0.05)}
+.qa-a{display:none;padding:10px 12px;color:var(--text);font-size:12px;border-top:1px solid var(--border);line-height:1.8}
+.qa-a.open{display:block}
+.code-block{background:var(--dim);border:1px solid var(--border);border-radius:3px;padding:12px;font-size:11px;color:var(--cyan);overflow-x:auto;white-space:pre;margin:8px 0;line-height:1.8}
+.kw{color:var(--green)}
+.str{color:var(--amber)}
+.cm{color:var(--muted)}
+.fn{color:var(--blue)}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.tool-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:12px}
+.tool-name{color:var(--green);font-size:12px;letter-spacing:1px;margin-bottom:4px}
+.tool-desc{color:var(--muted);font-size:11px;line-height:1.6;margin-bottom:8px}
+.tool-use{color:var(--green2);font-size:10px}
+.bgp-table{width:100%;border-collapse:collapse;font-size:11px}
+.bgp-table th{color:var(--green);padding:7px 8px;text-align:left;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:1px}
+.bgp-table td{padding:7px 8px;border-bottom:1px solid rgba(26,46,26,0.5);color:var(--text)}
+.bgp-table tr:nth-child(odd) td{background:var(--bg2)}
+.step-num{color:var(--amber);font-weight:bold}
+.separator{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+.cidr-row{display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:8px;padding:5px 0;border-bottom:1px solid rgba(26,46,26,0.4);font-size:11px}
+.footer{padding:1rem 1.5rem;border-top:1px solid var(--border);font-size:10px;color:var(--muted);text-align:center;margin-top:2rem}
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">NET<span style="color:var(--cyan)">AUTO</span>PRO</div>
+    <span class="blink" style="color:var(--green);font-size:20px">▋</span>
+  </div>
+  <div class="status-bar">
+    <span><span class="status-dot">●</span> SYSTEM ONLINE</span>
+    <span><span style="color:var(--amber)">●</span> BGP TABLES LOADED</span>
+    <span><span style="color:var(--blue)">●</span> AUTOMATION MODULES READY</span>
+    <span><span style="color:var(--cyan)">●</span> CLOUD ENGINES ACTIVE</span>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="switchTab('subnet',this)">[ SUBNET CALC ]</button>
+  <button class="nav-btn" onclick="switchTab('cidr',this)">[ CIDR REF ]</button>
+  <button class="nav-btn" onclick="switchTab('bgp',this)">[ BGP GUIDE ]</button>
+  <button class="nav-btn" onclick="switchTab('qa',this)">[ INTERVIEW Q&amp;A ]</button>
+  <button class="nav-btn" onclick="switchTab('code',this)">[ CODE SNIPPETS ]</button>
+  <button class="nav-btn" onclick="switchTab('tools',this)">[ TOOLS REF ]</button>
+</div>
+
+<!-- SUBNET CALCULATOR -->
+<div id="tab-subnet" class="content active">
+  <div class="prompt">root@netauto:~$ ./subnet_calculator.py</div>
+  <div class="section-title">SUBNET CALCULATOR</div>
+  <div class="row">
+    <div class="field"><label>IP ADDRESS</label><input type="text" id="ipInput" placeholder="192.168.1.0" value="192.168.1.0"></div>
+    <div class="field"><label>CIDR PREFIX</label><input type="number" id="cidrInput" placeholder="24" value="24" min="0" max="32"></div>
+    <button class="run" onclick="calcSubnet()">► CALCULATE</button>
+  </div>
+  <div id="subnetOut" class="output">AWAITING INPUT...</div>
+</div>
+
+<!-- CIDR REFERENCE -->
+<div id="tab-cidr" class="content">
+  <div class="prompt">root@netauto:~$ cat /etc/cidr_reference.txt</div>
+  <div class="section-title">CIDR QUICK REFERENCE</div>
+  <div class="cidr-row" style="font-size:10px;color:var(--green);letter-spacing:1px;font-weight:bold">
+    <span>CIDR</span><span>SUBNET MASK</span><span>TOTAL HOSTS</span><span>USABLE</span>
+  </div>
+  <div id="cidrTable"></div>
+  <hr class="separator">
+  <div class="section-title">WILDCARD MASK CALCULATOR</div>
+  <div class="row">
+    <div class="field"><label>SUBNET MASK</label><input type="text" id="maskIn" placeholder="255.255.255.0" value="255.255.255.0"></div>
+    <button class="run" onclick="calcWildcard()">► CONVERT</button>
+  </div>
+  <div id="wildcardOut" class="output">AWAITING INPUT...</div>
+</div>
+
+<!-- BGP GUIDE -->
+<div id="tab-bgp" class="content">
+  <div class="prompt">root@netauto:~$ show bgp best-path-selection</div>
+  <div class="section-title">BGP BEST PATH SELECTION — ALL 12 STEPS</div>
+  <table class="bgp-table">
+    <thead><tr><th>#</th><th>ATTRIBUTE</th><th>RULE</th><th>HOW TO TUNE</th></tr></thead>
+    <tbody id="bgpBody"></tbody>
+  </table>
+  <hr class="separator">
+  <div class="section-title">BGP NEIGHBOR STATES</div>
+  <div class="grid3" id="bgpStates"></div>
+  <hr class="separator">
+  <div class="section-title">TROUBLESHOOT — ACTIVE STATE</div>
+  <div id="bgpTrouble"></div>
+  <hr class="separator">
+  <div class="section-title">KEY BGP CONCEPTS</div>
+  <div class="grid2" id="bgpConcepts"></div>
+</div>
+
+<!-- INTERVIEW Q&A -->
+<div id="tab-qa" class="content">
+  <div class="prompt">root@netauto:~$ ./interview_prep.sh --mode=full</div>
+  <div style="display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap" id="qaFilters">
+    <button class="nav-btn active" onclick="filterQA('all',this)">ALL</button>
+    <button class="nav-btn" onclick="filterQA('networking',this)">NETWORKING</button>
+    <button class="nav-btn" onclick="filterQA('automation',this)">AUTOMATION</button>
+    <button class="nav-btn" onclick="filterQA('cloud',this)">CLOUD</button>
+  </div>
+  <div id="qaList"></div>
+</div>
+
+<!-- CODE SNIPPETS -->
+<div id="tab-code" class="content">
+  <div class="prompt">root@netauto:~$ ls /snippets/*.py</div>
+  <div id="codeSnippets"></div>
+</div>
+
+<!-- TOOLS REFERENCE -->
+<div id="tab-tools" class="content">
+  <div class="prompt">root@netauto:~$ cat /etc/automation_tools.json</div>
+  <div class="section-title">NETWORK AUTOMATION TOOLS REFERENCE</div>
+  <div class="tool-grid" id="toolsGrid"></div>
+  <hr class="separator">
+  <div class="section-title">NETCONF vs RESTCONF vs CLI vs SNMP</div>
+  <div id="protocolTable"></div>
+</div>
+
+<div class="footer">NetAutoPro — Network Automation Toolkit &nbsp;|&nbsp; Built for Network Engineers &nbsp;|&nbsp; Free &amp; Open Source</div>
+
+<script>
+function switchTab(name, btn) {
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function ip2int(ip) { return ip.split('.').reduce((a, o) => a * 256 + parseInt(o), 0); }
+function int2ip(n) { return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.'); }
+
+function calcSubnet() {
+  const ip = document.getElementById('ipInput').value.trim();
+  const cidr = parseInt(document.getElementById('cidrInput').value);
+  const out = document.getElementById('subnetOut');
+  if (!/^\d+\.\d+\.\d+\.\d+$/.test(ip) || isNaN(cidr) || cidr < 0 || cidr > 32) {
+    out.textContent = 'ERROR: Invalid IP or CIDR value'; return;
+  }
+  const mask = cidr === 0 ? 0 : (0xFFFFFFFF << (32 - cidr)) >>> 0;
+  const ipInt = ip2int(ip);
+  const network = (ipInt & mask) >>> 0;
+  const broadcast = (network | (~mask >>> 0)) >>> 0;
+  const first = cidr < 31 ? (network + 1) >>> 0 : network;
+  const last = cidr < 31 ? (broadcast - 1) >>> 0 : broadcast;
+  const hosts = cidr >= 31 ? Math.pow(2, 32 - cidr) : Math.pow(2, 32 - cidr) - 2;
+  const ipPrivate = (ipInt >= 0xA000000 && ipInt <= 0xAFFFFFF) ||
+    (ipInt >= 0xAC100000 && ipInt <= 0xAC1FFFFF) ||
+    (ipInt >= 0xC0A80000 && ipInt <= 0xC0A8FFFF);
+  out.textContent =
+    `NETWORK ADDRESS  : ${int2ip(network)}\n` +
+    `BROADCAST        : ${int2ip(broadcast)}\n` +
+    `SUBNET MASK      : ${int2ip(mask)}\n` +
+    `WILDCARD MASK    : ${int2ip(~mask >>> 0)}\n` +
+    `FIRST HOST       : ${int2ip(first)}\n` +
+    `LAST HOST        : ${int2ip(last)}\n` +
+    `USABLE HOSTS     : ${hosts.toLocaleString()}\n` +
+    `TOTAL ADDRESSES  : ${Math.pow(2, 32 - cidr).toLocaleString()}\n` +
+    `CIDR NOTATION    : ${int2ip(network)}/${cidr}\n` +
+    `IP CLASS         : ${ipPrivate ? 'PRIVATE (RFC1918)' : 'PUBLIC'}`;
+}
+
+function calcWildcard() {
+  const m = document.getElementById('maskIn').value.trim();
+  const out = document.getElementById('wildcardOut');
+  if (!/^\d+\.\d+\.\d+\.\d+$/.test(m)) { out.textContent = 'ERROR: Invalid subnet mask'; return; }
+  const parts = m.split('.').map(Number);
+  const wc = parts.map(o => 255 - o).join('.');
+  const cidr = parts.reduce((a, o) => a + o.toString(2).replace(/0/g, '').length, 0);
+  out.textContent = `SUBNET MASK   : ${m}\nWILDCARD MASK : ${wc}\nCIDR PREFIX   : /${cidr}`;
+}
+
+// CIDR Table
+const cidrData = [
+  [32,'255.255.255.255',1,0],[31,'255.255.255.254',2,2],[30,'255.255.255.252',4,2],
+  [29,'255.255.255.248',8,6],[28,'255.255.255.240',16,14],[27,'255.255.255.224',32,30],
+  [26,'255.255.255.192',64,62],[25,'255.255.255.128',128,126],[24,'255.255.255.0',256,254],
+  [23,'255.255.254.0',512,510],[22,'255.255.252.0',1024,1022],[21,'255.255.248.0',2048,2046],
+  [20,'255.255.240.0',4096,4094],[19,'255.255.224.0',8192,8190],[18,'255.255.192.0',16384,16382],
+  [17,'255.255.128.0',32768,32766],[16,'255.255.0.0',65536,65534],
+  [15,'255.254.0.0',131072,131070],[14,'255.252.0.0',262144,262142],
+  [8,'255.0.0.0',16777216,16777214],[0,'0.0.0.0',4294967296,4294967294]
+];
+const ct = document.getElementById('cidrTable');
+cidrData.forEach(([c, m, t, u]) => {
+  const row = document.createElement('div');
+  row.className = 'cidr-row';
+  row.innerHTML = `<span style="color:var(--amber)">/${c}</span><span>${m}</span><span style="color:var(--cyan)">${t.toLocaleString()}</span><span style="color:var(--green)">${u.toLocaleString()}</span>`;
+  ct.appendChild(row);
+});
+
+// BGP Steps
+const bgpSteps = [
+  ['01','WEIGHT','Higher wins','Cisco proprietary, local to router only, not advertised'],
+  ['02','LOCAL PREFERENCE','Higher wins','set local-preference in route-map, shared within AS'],
+  ['03','LOCALLY ORIGINATED','Local preferred','Routes from network/redistribute beat received routes'],
+  ['04','AS-PATH LENGTH','Shorter wins','Use as-path prepend to inflate path and de-prefer'],
+  ['05','ORIGIN CODE','IGP > EGP > ?','set origin in route-map (IGP=i, EGP=e, Incomplete=?)'],
+  ['06','MED','Lower wins','set metric in route-map, compared only from same AS'],
+  ['07','eBGP OVER iBGP','eBGP preferred','External routes preferred over internal routes'],
+  ['08','IGP METRIC TO NEXT-HOP','Lower wins','Tune underlying IGP costs to influence next-hop'],
+  ['09','OLDEST eBGP PATH','Older preferred','Favors stability, cannot be directly tuned'],
+  ['10','BGP ROUTER-ID','Lower wins','Change BGP router-id to influence selection'],
+  ['11','CLUSTER-LIST LENGTH','Shorter wins','Used in route reflector topologies'],
+  ['12','NEIGHBOR IP ADDRESS','Lower wins','Final tiebreaker when all else is equal'],
+];
+const bgpBody = document.getElementById('bgpBody');
+bgpSteps.forEach(([n, a, r, t]) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td class="step-num">${n}</td><td style="color:var(--cyan)">${a}</td><td style="color:var(--green2)">${r}</td><td style="color:var(--muted)">${t}</td>`;
+  bgpBody.appendChild(tr);
+});
+
+// BGP States
+const bgpStateData = [
+  ['IDLE', 'Initial state. BGP waiting to start.', 'Check: Is BGP process running?', 'var(--muted)'],
+  ['CONNECT', 'TCP connection attempt in progress.', 'Check: Route to peer reachable?', 'var(--blue)'],
+  ['ACTIVE', 'TCP failed, retrying connection.', 'Check: port 179, ACL, update-source', 'var(--red)'],
+  ['OPENSENT', 'TCP up, OPEN message sent.', 'Check: AS number, BGP version match', 'var(--amber)'],
+  ['OPENCONFIRM', 'Waiting for KEEPALIVE.', 'Check: hold time, auth password', 'var(--amber)'],
+  ['ESTABLISHED', 'Session UP. Routes exchanging.', 'HEALTHY — no action needed', 'var(--green)'],
+];
+const bgpStatesDiv = document.getElementById('bgpStates');
+bgpStateData.forEach(([s, d, fix, col]) => {
+  const c = document.createElement('div');
+  c.className = 'card';
+  c.innerHTML = `<div class="card-title" style="color:${col}">${s}</div><div style="color:var(--muted);font-size:11px;margin-bottom:6px">${d}</div><div style="color:var(--cyan);font-size:10px">${fix}</div>`;
+  bgpStatesDiv.appendChild(c);
+});
+
+// BGP Troubleshoot
+const troubleSteps = [
+  'Ping neighbor IP from correct source interface',
+  'Verify no ACL/firewall blocking TCP port 179',
+  'Confirm neighbor IP is correct on both routers',
+  'If using loopbacks, verify update-source is configured',
+  'For non-adjacent eBGP, check ebgp-multihop value',
+  'Verify MD5 authentication password matches exactly',
+  'Run: debug ip bgp <neighbor-ip> to read exact failure',
+];
+const td = document.getElementById('bgpTrouble');
+troubleSteps.forEach((s, i) => {
+  const d = document.createElement('div');
+  d.style.cssText = 'padding:7px 0;border-bottom:1px solid rgba(26,46,26,0.5);font-size:12px';
+  d.innerHTML = `<span style="color:var(--amber)">STEP ${i + 1}</span>  <span style="color:var(--text)">${s}</span>`;
+  td.appendChild(d);
+});
+
+// BGP Concepts
+const bgpConceptData = [
+  { title: 'iBGP vs eBGP', body: 'iBGP: BGP within same AS. Requires full mesh or route reflectors. Does not increment AS-PATH.\neBGP: BGP between different ASes. Increments AS-PATH. TTL=1 by default (directly connected).' },
+  { title: 'Route Reflector', body: 'Avoids iBGP full mesh. RR reflects routes between clients. Clients only peer with RR, not each other. Uses cluster-id and originator-id to prevent loops.' },
+  { title: 'BGP Communities', body: 'Optional transitive attribute. 32-bit value (AA:NN format). Used to tag routes and apply policies. Well-known: NO_EXPORT, NO_ADVERTISE, LOCAL_AS.' },
+  { title: 'AS-PATH Prepend', body: 'Artificially lengthens AS-PATH to make a route less preferred. Used for inbound traffic engineering when advertising to multiple ISPs.' },
+];
+const bgpCDiv = document.getElementById('bgpConcepts');
+bgpConceptData.forEach(item => {
+  const c = document.createElement('div');
+  c.className = 'card';
+  c.innerHTML = `<div class="card-title">${item.title}</div><div style="color:var(--muted);font-size:11px;white-space:pre-wrap;line-height:1.7">${item.body}</div>`;
+  bgpCDiv.appendChild(c);
+});
+
+// Q&A Data
+const qaData = [
+  { cat: 'networking', q: 'Walk me through BGP best path selection. What are the top criteria?', a: 'BGP uses 12 attributes in order: Weight (highest wins, Cisco only) → Local Preference (highest, within AS) → Locally originated → AS-PATH length (shortest) → Origin code (IGP>EGP>?) → MED (lowest, same AS only) → eBGP over iBGP → IGP metric to next-hop → Oldest eBGP path → Router-ID (lowest) → Cluster-list length → Neighbor IP. Memorize the first 6 — those are most tested.' },
+  { cat: 'networking', q: 'What are OSPF LSA types and when are they generated?', a: 'Type 1: Router LSA — every router, flooded within area. Type 2: Network LSA — DR on broadcast segments. Type 3: Summary LSA — ABR, inter-area routes. Type 4: ASBR Summary — ABR pointing to ASBR. Type 5: External LSA — ASBR, flooded everywhere except stub areas. Type 7: NSSA External — ASBR inside NSSA area, converted to Type 5 at the ABR.' },
+  { cat: 'networking', q: 'What is PHP in MPLS and why is it used?', a: 'Penultimate Hop Popping — the second-to-last (penultimate) router removes the MPLS label before forwarding to the egress PE. This saves the egress PE from doing two lookups (label + IP). The egress PE receives a plain IP packet and does one direct IP lookup. Purpose: efficiency — reduces processing overhead at the network edge.' },
+  { cat: 'networking', q: 'How do you troubleshoot a BGP neighbor stuck in Active state?', a: 'Active state means TCP connection is failing. Check: 1) Ping peer from correct source. 2) Verify no ACL blocking TCP port 179. 3) Confirm neighbor IP is correct both sides. 4) If using loopbacks, check update-source. 5) For non-adjacent eBGP, check ebgp-multihop. 6) Verify MD5 password matches. 7) Use debug ip bgp for exact failure reason.' },
+  { cat: 'networking', q: 'What is the difference between STP, RSTP, and MST?', a: 'STP (802.1D): 30-50 sec convergence. Blocking→Listening→Learning→Forwarding port states. RSTP (802.1w): ~1-2 sec convergence. Adds edge ports (PortFast), Alternate and Backup port roles. Backward compatible with STP. MST (802.1s): Maps multiple VLANs to fewer STP instances — reduces CPU overhead. Best for environments with many VLANs.' },
+  { cat: 'networking', q: 'What is BPDU Guard and when do you use it?', a: 'BPDU Guard shuts down a port if a BPDU is received on an edge/PortFast port. Prevents rogue or unauthorized switches from being connected to access ports and disrupting the spanning tree topology. Configure on all access ports facing end devices. Port goes into err-disabled state if a BPDU is detected — requires manual recovery or err-disable recovery.' },
+  { cat: 'automation', q: 'What is the difference between Netmiko, Napalm, and Nornir?', a: 'Netmiko: SSH library for sending CLI commands and pushing config. Simple and direct. Best for quick scripts.\nNapalm: Multi-vendor abstraction layer with standard getters (get_interfaces, get_bgp_neighbors) and config operations. Vendor-agnostic.\nNornir: Full Python automation framework with parallel execution, inventory management, and task orchestration. Integrates with Netmiko and Napalm for scale.' },
+  { cat: 'automation', q: 'Explain idempotency in Ansible with an example.', a: 'Idempotency means running the same playbook multiple times always produces the same result — it does not make changes if the desired state already exists.\nExample: Task to create VLAN 100. First run: VLAN not present → creates it → status: changed. Second run: VLAN exists → does nothing → status: ok.\nNon-idempotent: ios_command for show commands — always executes. Idempotent: ios_config, ios_vlans — only changes if needed.' },
+  { cat: 'automation', q: 'What is NETCONF and how does it differ from CLI/SNMP?', a: 'NETCONF runs over SSH port 830 using XML data and YANG models. Supports get, get-config, edit-config, commit, and rollback operations with full transaction support. CLI: unstructured text output, hard to parse, no transaction support. SNMP: UDP-based, MIB-centric, read-heavy, limited write support. NETCONF is structured, machine-readable, and supports candidate datastore for safe atomic changes.' },
+  { cat: 'automation', q: 'How would you design automated config backup for 200 routers?', a: '1) Pull inventory from NetBox or CMDB as YAML.\n2) Use Nornir + Netmiko for parallel SSH connections.\n3) Run show running-config on each device.\n4) Save as hostname_YYYY-MM-DD.txt.\n5) Commit all files to a Git repository.\n6) Schedule via cron or Ansible AWX.\n7) Alert on unreachable devices via email/Slack.\nGit diff between commits automatically highlights unauthorized config changes.' },
+  { cat: 'automation', q: 'Explain YANG, NETCONF, and RESTCONF — how do they relate?', a: 'YANG: Data modeling language — defines the schema (structure of config and operational data). Think: database schema.\nNETCONF: Protocol over SSH port 830, uses XML, supports transactions and rollback. Think: API with commit/rollback.\nRESTCONF: HTTP/HTTPS-based alternative to NETCONF, uses JSON or XML, maps to GET/POST/PUT/PATCH/DELETE.\nAnalogy: YANG = DB schema, NETCONF/RESTCONF = API layer on top of that schema.' },
+  { cat: 'cloud', q: 'What is the difference between VPC Peering and Transit Gateway?', a: 'VPC Peering: 1-to-1 direct connection, no transitive routing, lower cost. Best for 2-3 VPCs.\nTransit Gateway: Hub-and-spoke, supports transitive routing, scales to thousands of VPCs, cross-region and cross-account. Higher cost.\nRule: Use peering for simple setups. Use Transit Gateway when you need centralized routing, shared services, or many VPCs that need to communicate.' },
+  { cat: 'cloud', q: 'How does BGP work between on-premises and GCP via Cloud Interconnect?', a: 'Cloud Interconnect provides a dedicated physical link. Cloud Router runs eBGP with the on-prem router over the interconnect. GCP VPC subnets are advertised to on-prem; on-prem prefixes are advertised to GCP. Cloud Router uses a GCP-side ASN; on-prem uses its own ASN. MED tuning supports path preference for redundant interconnects. Custom route advertisements on Cloud Router control what prefixes are shared.' },
+  { cat: 'cloud', q: 'What is SD-WAN and how does it differ from traditional WAN?', a: 'Traditional WAN: per-device CLI config, MPLS-only transport, manual provisioning (weeks), static routing.\nSD-WAN: centralized controller (vManage), any transport (MPLS + broadband + LTE), zero-touch provisioning (hours), application-aware dynamic path selection.\nCisco SD-WAN components: vManage (GUI/management), vSmart (control plane, OMP protocol), vBond (orchestration/NAT traversal), vEdge/cEdge (data plane at branches).' },
+  { cat: 'cloud', q: 'How would you secure traffic between microservices in cloud?', a: '1) Network segmentation: separate subnets, strict security groups — allow only required ports.\n2) Service Mesh (Istio/Anthos): handles mTLS (mutual TLS) between services automatically.\n3) Private endpoints: Private Service Connect (GCP) / VPC Endpoints (AWS) — traffic stays off public internet.\n4) Cloud Armor / WAF: protect ingress from external threats.\n5) Enforce TLS 1.2+ for all service-to-service calls.\nThis demonstrates understanding of zero-trust networking principles.' },
+];
+
+function renderQA(filter) {
+  const list = document.getElementById('qaList');
+  list.innerHTML = '';
+  const filtered = qaData.filter(q => filter === 'all' || q.cat === filter);
+  filtered.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'qa-item';
+    const catColor = item.cat === 'networking' ? 'var(--green)' : item.cat === 'automation' ? 'var(--amber)' : 'var(--blue)';
+    const formattedA = item.a.replace(/\n/g, '<br>');
+    div.innerHTML = `<div class="qa-q" onclick="toggleQA(this)"><span>[${String(i + 1).padStart(2, '0')}] ${item.q}</span><span style="color:${catColor};font-size:10px">${item.cat.toUpperCase()} ▼</span></div><div class="qa-a">${formattedA}</div>`;
+    list.appendChild(div);
+  });
+}
+
+function toggleQA(el) { el.nextElementSibling.classList.toggle('open'); }
+
+function filterQA(cat, btn) {
+  document.querySelectorAll('#qaFilters .nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderQA(cat);
+}
+renderQA('all');
+
+// Code Snippets
+const snippets = [
+  { title: '01 — NETMIKO: CONNECT & FETCH COMMAND', code: `<span class="kw">from</span> netmiko <span class="kw">import</span> ConnectHandler
+
+device = {
+    <span class="str">'device_type'</span>: <span class="str">'cisco_ios'</span>,
+    <span class="str">'host'</span>: <span class="str">'10.0.0.1'</span>,
+    <span class="str">'username'</span>: <span class="str">'admin'</span>,
+    <span class="str">'password'</span>: <span class="str">'cisco123'</span>,
+}
+
+conn = <span class="fn">ConnectHandler</span>(**device)
+output = conn.<span class="fn">send_command</span>(<span class="str">'show ip route'</span>)
+<span class="fn">print</span>(output)
+conn.<span class="fn">disconnect</span>()` },
+  { title: '02 — NETMIKO: PUSH CONFIG TO DEVICE', code: `config_cmds = [
+    <span class="str">'router ospf 1'</span>,
+    <span class="str">'network 192.168.1.0 0.0.0.255 area 0'</span>,
+    <span class="str">'passive-interface GigabitEthernet0/1'</span>
+]
+
+conn = <span class="fn">ConnectHandler</span>(**device)
+conn.<span class="fn">enable</span>()
+output = conn.<span class="fn">send_config_set</span>(config_cmds)
+conn.<span class="fn">disconnect</span>()
+<span class="fn">print</span>(output)` },
+  { title: '03 — MULTI-DEVICE LOOP + CONFIG BACKUP', code: `<span class="kw">from</span> netmiko <span class="kw">import</span> ConnectHandler
+<span class="kw">from</span> datetime <span class="kw">import</span> date
+
+devices = [<span class="str">'10.0.0.1'</span>, <span class="str">'10.0.0.2'</span>, <span class="str">'10.0.0.3'</span>]
+today = date.<span class="fn">today</span>()
+
+<span class="kw">for</span> ip <span class="kw">in</span> devices:
+    dev = {<span class="str">'device_type'</span>:<span class="str">'cisco_ios'</span>, <span class="str">'host'</span>:ip,
+           <span class="str">'username'</span>:<span class="str">'admin'</span>, <span class="str">'password'</span>:<span class="str">'cisco123'</span>}
+    conn = <span class="fn">ConnectHandler</span>(**dev)
+    cfg = conn.<span class="fn">send_command</span>(<span class="str">'show running-config'</span>)
+    filename = <span class="fn">f</span><span class="str">'{ip}_{today}.txt'</span>
+    <span class="kw">with</span> <span class="fn">open</span>(filename, <span class="str">'w'</span>) <span class="kw">as</span> f:
+        f.<span class="fn">write</span>(cfg)
+    conn.<span class="fn">disconnect</span>()
+    <span class="fn">print</span>(<span class="fn">f</span><span class="str">'[+] Backup complete: {filename}'</span>)` },
+  { title: '04 — RESTCONF: GET INTERFACES (JSON)', code: `<span class="kw">import</span> requests, json
+
+url = <span class="str">"https://10.0.0.1/restconf/data/ietf-interfaces:interfaces"</span>
+headers = {
+    <span class="str">'Content-Type'</span>: <span class="str">'application/yang-data+json'</span>,
+    <span class="str">'Accept'</span>:       <span class="str">'application/yang-data+json'</span>
+}
+
+r = requests.<span class="fn">get</span>(url, auth=(<span class="str">'admin'</span>, <span class="str">'cisco123'</span>),
+               headers=headers, verify=<span class="kw">False</span>)
+data = r.<span class="fn">json</span>()
+<span class="fn">print</span>(json.<span class="fn">dumps</span>(data, indent=2))` },
+  { title: '05 — JINJA2: CONFIG TEMPLATE RENDERING', code: `<span class="kw">from</span> jinja2 <span class="kw">import</span> Template
+
+template_str = <span class="str">"""
+interface {{ interface }}
+ description {{ desc }}
+ ip address {{ ip }} {{ mask }}
+ no shutdown
+"""</span>
+
+tmpl = <span class="fn">Template</span>(template_str)
+rendered = tmpl.<span class="fn">render</span>(
+    interface=<span class="str">'GigabitEthernet0/0'</span>,
+    desc=<span class="str">'WAN_UPLINK'</span>,
+    ip=<span class="str">'192.168.1.1'</span>,
+    mask=<span class="str">'255.255.255.0'</span>
+)
+<span class="fn">print</span>(rendered)` },
+  { title: '06 — IP REGEX EXTRACTOR FROM SHOW OUTPUT', code: `<span class="kw">import</span> re
+
+ip_pattern = <span class="fn">r</span><span class="str">"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"</span>
+
+<span class="cm"># Extract all IPs from show ip route output</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">'route_output.txt'</span>) <span class="kw">as</span> f:
+    content = f.<span class="fn">read</span>()
+
+ips = re.<span class="fn">findall</span>(ip_pattern, content)
+unique_ips = <span class="fn">list</span>(<span class="fn">set</span>(ips))
+<span class="fn">print</span>(<span class="fn">f</span><span class="str">"Found {len(unique_ips)} unique IPs"</span>)
+<span class="kw">for</span> ip <span class="kw">in</span> <span class="fn">sorted</span>(unique_ips):
+    <span class="fn">print</span>(ip)` },
+  { title: '07 — NAPALM: GET BGP NEIGHBORS', code: `<span class="kw">from</span> napalm <span class="kw">import</span> get_network_driver
+
+driver = <span class="fn">get_network_driver</span>(<span class="str">'ios'</span>)
+device = <span class="fn">driver</span>(
+    hostname=<span class="str">'10.0.0.1'</span>,
+    username=<span class="str">'admin'</span>,
+    password=<span class="str">'cisco123'</span>
+)
+
+device.<span class="fn">open</span>()
+bgp_info = device.<span class="fn">get_bgp_neighbors</span>()
+interfaces = device.<span class="fn">get_interfaces</span>()
+<span class="kw">import</span> json
+<span class="fn">print</span>(json.<span class="fn">dumps</span>(bgp_info, indent=2))
+device.<span class="fn">close</span>()` },
+  { title: '08 — ANSIBLE PLAYBOOK: VLAN PROVISIONING', code: `<span class="cm">---
+# vlan_provision.yml</span>
+- name: <span class="str">Provision VLANs across switches</span>
+  hosts: access_switches
+  gather_facts: <span class="kw">no</span>
+
+  tasks:
+    - name: <span class="str">Configure VLANs</span>
+      cisco.ios.ios_vlans:
+        config:
+          - vlan_id: <span class="str">100</span>
+            name: <span class="str">MANAGEMENT</span>
+          - vlan_id: <span class="str">200</span>
+            name: <span class="str">DATA</span>
+          - vlan_id: <span class="str">300</span>
+            name: <span class="str">VOICE</span>
+        state: merged` },
+];
+
+const sc = document.getElementById('codeSnippets');
+snippets.forEach(s => {
+  const d = document.createElement('div');
+  d.style.marginBottom = '1.5rem';
+  d.innerHTML = `<div class="section-title" style="font-size:11px">${s.title}</div><div class="code-block">${s.code}</div>`;
+  sc.appendChild(d);
+});
+
+// Tools
+const toolsData = [
+  { name: 'NETMIKO', tag: 'Python / SSH', desc: 'Multi-vendor SSH library. Simplifies CLI automation — send commands, push configs, handle enable mode. Supports 90+ device types.', use: 'Best for: quick scripts, config deployment, show command collection' },
+  { name: 'NAPALM', tag: 'Abstraction Layer', desc: 'Network Automation and Programmability Abstraction Layer. Vendor-agnostic getters and config replace/merge operations. Returns structured data.', use: 'Best for: multi-vendor environments, standardized data collection' },
+  { name: 'NORNIR', tag: 'Python Framework', desc: 'Python automation framework with parallel task execution and inventory management. Integrates with Netmiko and Napalm for large-scale automation.', use: 'Best for: large-scale automation, parallel device operations' },
+  { name: 'ANSIBLE', tag: 'Agentless / YAML', desc: 'Idempotent playbook-based automation. No agent required on network devices. Rich library of networking modules (cisco.ios, junos, arista.eos).', use: 'Best for: config management, compliance checks, structured workflows' },
+  { name: 'NETCONF', tag: 'SSH Port 830', desc: 'XML-based management protocol using YANG data models. Supports candidate config, commit, and rollback transactions. Structured and machine-readable.', use: 'Best for: structured config management, transactional atomic changes' },
+  { name: 'RESTCONF', tag: 'HTTP/HTTPS', desc: 'REST API equivalent of NETCONF. Returns JSON or XML. Integrates easily with curl, Postman, Python requests, and web-based tools.', use: 'Best for: modern IOS-XE devices, web tool integration, quick queries' },
+  { name: 'TERRAFORM', tag: 'IaC / HCL', desc: 'Infrastructure as Code for cloud and on-prem networking. Declarative config for VPCs, subnets, route tables, security groups across AWS/GCP/Azure.', use: 'Best for: cloud infrastructure provisioning at scale' },
+  { name: 'GIT', tag: 'Version Control', desc: 'Track changes to configs, playbooks, scripts. Git diff for change detection. CI/CD pipelines for network config deployment. GitOps model.', use: 'Best for: config versioning, change audit trail, team collaboration' },
+  { name: 'NETBOX', tag: 'IPAM / DCIM', desc: 'Open-source IP address management and data center infrastructure management. Inventory, IP management, cable management, rack diagrams.', use: 'Best for: single source of truth for network inventory and IPAM' },
+  { name: 'ANSIBLE AWX', tag: 'Web UI / Scheduler', desc: 'Web-based UI and API for Ansible. Schedule playbooks, manage inventories, role-based access control, job templates, audit logs.', use: 'Best for: enterprise Ansible management, scheduled automation, RBAC' },
+];
+
+const tg = document.getElementById('toolsGrid');
+toolsData.forEach(t => {
+  const d = document.createElement('div');
+  d.className = 'tool-card';
+  d.innerHTML = `<div class="tool-name">${t.name} <span style="color:var(--muted);font-size:10px">[${t.tag}]</span></div><div class="tool-desc">${t.desc}</div><div class="tool-use">${t.use}</div>`;
+  tg.appendChild(d);
+});
+
+// Protocol Comparison
+const protos = [
+  { label: 'TRANSPORT', cli: 'SSH / Telnet', snmp: 'UDP 161/162', netconf: 'SSH port 830', restconf: 'HTTPS' },
+  { label: 'DATA FORMAT', cli: 'Unstructured text', snmp: 'MIB / OID', netconf: 'XML + YANG', restconf: 'JSON / XML + YANG' },
+  { label: 'OPERATIONS', cli: 'Manual CLI', snmp: 'GET/SET/TRAP', netconf: 'get/edit-config/commit', restconf: 'GET/POST/PUT/PATCH/DELETE' },
+  { label: 'TRANSACTIONS', cli: 'None', snmp: 'None', netconf: 'Candidate + Rollback', restconf: 'Candidate + Rollback' },
+  { label: 'AUTOMATION', cli: 'Hard to parse', snmp: 'Limited write', netconf: 'Excellent', restconf: 'Excellent' },
+];
+const ptDiv = document.getElementById('protocolTable');
+const header = document.createElement('div');
+header.style.cssText = 'display:grid;grid-template-columns:120px 1fr 1fr 1fr 1fr;gap:8px;font-size:10px;color:var(--green);letter-spacing:1px;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border)';
+header.innerHTML = '<span></span><span>CLI</span><span>SNMP</span><span>NETCONF</span><span>RESTCONF</span>';
+ptDiv.appendChild(header);
+protos.forEach(p => {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:grid;grid-template-columns:120px 1fr 1fr 1fr 1fr;gap:8px;font-size:11px;padding:5px 0;border-bottom:1px solid rgba(26,46,26,0.4)';
+  row.innerHTML = `<span style="color:var(--amber)">${p.label}</span><span style="color:var(--muted)">${p.cli}</span><span style="color:var(--muted)">${p.snmp}</span><span style="color:var(--cyan)">${p.netconf}</span><span style="color:var(--green2)">${p.restconf}</span>`;
+  ptDiv.appendChild(row);
+});
+
+// Auto-run subnet calc on load
+calcSubnet();
+</script>
+</body>
+</html>
